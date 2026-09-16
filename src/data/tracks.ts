@@ -1,13 +1,13 @@
 export type Track = {
   title: string;
   artist: string;
-  src: string;
+  youtubeVideoId: string;
+  station?: string;
 };
 
-// Keep music files local only when you have permission to distribute them.
-// Replace these placeholders with licensed/original tracks or an approved embed strategy.
+// Edit the playlist here. YouTube serves the video and audio; no local MP3s.
 export const tracks: Track[] = [
-  { title: 'NIGHT DRIVE', artist: 'BROKENFM', src: '' },
-  { title: 'MELANCHOLIA', artist: 'BROKENFM', src: '' },
-  { title: 'AFTER HOURS', artist: 'BROKENFM', src: '' },
+  { title: 'AFTER HOURS', artist: 'THE WEEKND', youtubeVideoId: 'ygTZZpVkmKg' },
+  { title: 'ALVAFRO', artist: 'FRED AGAIN AND LATIN MAFIA', youtubeVideoId: 'qj43MfnUw3o' },
+  { title: 'CIGARRETTES OUT THE WINDOW', artist: 'TV GIRL', youtubeVideoId: '7j6C9METNm0' },
 ];

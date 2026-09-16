@@ -1,33 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GameCanvas } from './components/GameCanvas';
-import { BrokenFM } from './components/BrokenFM';
+import { StartScreen } from './components/StartScreen';
 
 export default function App() {
   const [started, setStarted] = useState(false);
+  const appRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (started) appRef.current?.focus();
+  }, [started]);
 
   return (
-    <main className="app-shell">
-      <GameCanvas active={started} />
-      <div className="crt-overlay" aria-hidden="true" />
-
-      {!started && (
-        <section className="start-screen">
-          <p className="eyebrow">BROKEN CITY // 00:00</p>
-          <h1>JORGE // NIGHT DRIVE</h1>
-          <p className="subtitle">A journey through the things I've built.</p>
-          <button className="start-button" onClick={() => setStarted(true)}>
-            START ENGINE
-          </button>
-          <p className="hint">← QUICK VIEW · ↑ EXPERIENCE · → PROJECTS</p>
-        </section>
-      )}
-
-      {started && (
-        <>
-          <div className="route-hint">← QUICK VIEW&nbsp;&nbsp; ↑ EXPERIENCE&nbsp;&nbsp; → PROJECTS</div>
-          <BrokenFM />
-        </>
-      )}
+    <main className="app-shell" ref={appRef} tabIndex={-1} aria-label="Jorge — Night Drive">
+      {started ? <GameCanvas active /> : <StartScreen onStart={() => setStarted(true)} />}
     </main>
   );
 }

@@ -3,7 +3,7 @@
   color: #f6e9ff;
   background: #050208;
   font-synthesis: none;
-  text-rendering: geometricPrecision;
+  text-rendering: optimizeLegibility;
 }
 
 * { box-sizing: border-box; }
@@ -16,92 +16,223 @@ button { font: inherit; }
   height: 100vh;
   overflow: hidden;
   background: #050208;
-  image-rendering: pixelated;
 }
 
-.game-host { width: 100%; height: 100%; }
-.game-host canvas { width: 100% !important; height: 100% !important; image-rendering: pixelated; image-rendering: crisp-edges; }
+/* Match Phaser's 16:9 world without stretching its canvas. */
+.world-frame {
+  position: absolute;
+  width: min(100vw, calc(100vh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  container-type: inline-size;
+}
+.game-host { width: 100%; height: 100%; position: absolute; inset: 0; }
+.game-host canvas { display: block; image-rendering: pixelated; }
+.world-labels { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.world-label { position: absolute; display: grid; place-items: center; font-weight: 700; font-size: 1.7cqw; white-space: nowrap; color: #53e7ff; }
+.sign-left { left: 8.75%; top: 44.722%; width: 21.5625%; height: 8.056%; }
+.sign-center { left: 35.78125%; top: 41.111%; width: 28.59375%; height: 9.444%; color: #ff63df; }
+.sign-right { left: 70%; top: 44.722%; width: 22.8125%; height: 8.056%; }
 
 .crt-overlay {
   pointer-events: none;
   position: absolute;
   inset: 0;
-  z-index: 20;
-  opacity: .21;
+  z-index: 2;
+  opacity: .12;
   background:
     repeating-linear-gradient(to bottom, rgba(255,255,255,.04) 0, rgba(255,255,255,.04) 1px, transparent 1px, transparent 4px),
     radial-gradient(circle at center, transparent 48%, rgba(0,0,0,.46) 100%);
   mix-blend-mode: screen;
 }
 
+/* The welcome screen is a separate scene; the city mounts after START ENGINE. */
 .start-screen {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  text-align: center;
-  padding: 24px;
-  background: rgba(5,2,8,.58);
-  backdrop-filter: blur(2px);
+  min-height: 100%; height: 100%; overflow-y: auto;
+  display: flex; padding: clamp(18px, 5vw, 64px);
+  background: #070711;
+  background-image: radial-gradient(#302039 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.welcome-panel {
+  position: relative; width: min(100%, 860px); flex-shrink: 0; margin: auto;
+  border: 1px solid #564160; background: #0c0b17;
+  box-shadow: 8px 8px 0 #191025, 0 0 0 5px #08080f;
+}
+.welcome-panel::before, .welcome-panel::after { content: ''; position: absolute; width: 22px; height: 22px; pointer-events: none; }
+.welcome-panel::before { top: -2px; left: -2px; border-top: 3px solid #53e7ff; border-left: 3px solid #53e7ff; }
+.welcome-panel::after { bottom: -2px; right: -2px; border-bottom: 3px solid #ff63df; border-right: 3px solid #ff63df; }
+.welcome-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px; border-bottom: 1px solid #33243f; }
+.eyebrow { margin: 0; color: #8cbcc9; font-size: 11px; letter-spacing: .16em; }
+.welcome-led { width: 6px; height: 6px; flex-shrink: 0; background: #53e7ff; box-shadow: 0 0 8px #53e7ff55; }
+.welcome-content { position: relative; z-index: 1; padding: clamp(28px, 5vw, 62px) clamp(20px, 6vw, 76px) 24px; }
+.start-screen h1 { margin: 0; color: #ff82df; font-size: clamp(34px, 7vw, 82px); line-height: 1.1; letter-spacing: -.045em; text-shadow: 3px 3px 0 #462047; }
+.start-screen h1 > span { display: block; }
+.start-screen h1 .welcome-name { margin-bottom: 14px; color: #f4eafa; font-size: .36em; letter-spacing: .25em; text-shadow: none; }
+.subtitle { margin: 20px 0 0; max-width: 440px; color: #b9abc9; font-size: clamp(13px, 1.6vw, 17px); line-height: 1.7; }
+.start-button { display: inline-flex; align-items: center; justify-content: space-between; gap: 36px; margin-top: 30px; padding: 16px 22px; min-height: 48px; border: 1px solid #53e7ff; background: #10202b; color: #bbfaff; font-size: 13px; letter-spacing: .12em; cursor: pointer; box-shadow: 4px 4px 0 #23404f; }
+.start-button:hover { background: #18323c; transform: translate(1px, 1px); box-shadow: 3px 3px 0 #23404f; }
+.start-button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #23404f; }
+.welcome-road { position: relative; height: 80px; margin: 0 24px; overflow: hidden; border-bottom: 1px solid #755180; }
+.welcome-road::before, .welcome-road::after { content: ''; position: absolute; bottom: -4px; width: 2px; height: 105px; background: #623272; transform-origin: bottom; }
+.welcome-road::before { left: 27%; transform: rotate(60deg); }
+.welcome-road::after { right: 27%; transform: rotate(-60deg); background: #326579; }
+.welcome-road i { position: absolute; left: 50%; width: 2px; height: 5px; background: #9e83af; }
+.welcome-road i:nth-child(1) { top: 9px; }
+.welcome-road i:nth-child(2) { top: 23px; height: 8px; }
+.welcome-road i:nth-child(3) { top: 42px; width: 3px; height: 11px; }
+.welcome-road i:nth-child(4) { top: 65px; width: 4px; height: 16px; }
+.welcome-routes { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px 20px; padding: 20px 24px; color: #91829f; font-size: 10px; letter-spacing: .1em; }
+@media (max-width: 480px) {
+  .welcome-header { padding: 16px; }
+  .eyebrow { font-size: 9px; }
+  .welcome-content { padding: 30px 18px 20px; }
+  .start-screen h1 { font-size: clamp(29px, 8vw, 38px); }
+  .start-button { width: 100%; padding: 14px; gap: 10px; }
+  .welcome-routes { padding: 18px; font-size: 9px; }
 }
 
-.eyebrow, .hint { margin: 0; color: #53e7ff; font-size: 12px; letter-spacing: .18em; }
-.start-screen h1 { margin: 0; max-width: 900px; color: #ff63df; font-size: clamp(28px, 6vw, 78px); line-height: .98; letter-spacing: .04em; text-shadow: 4px 0 #28163e, 0 4px #28163e; }
-.subtitle { margin: 0; color: #d4baff; font-size: clamp(13px, 1.7vw, 20px); }
-.start-button { margin-top: 12px; padding: 14px 20px; border: 2px solid #ff2bd6; background: #0c0713; color: #ff63df; cursor: pointer; box-shadow: 5px 5px 0 #47145f; }
-.start-button:hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 #47145f; }
-
-.route-hint {
-  position: absolute;
-  z-index: 8;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 8px 10px;
-  color: #c7f7ff;
-  background: rgba(6,3,10,.72);
-  border: 1px solid rgba(83,231,255,.5);
-  font-size: 10px;
-  letter-spacing: .12em;
-  white-space: nowrap;
+/* Cockpit shares the world's coordinates so the stereo stays in the car. */
+.car-dashboard {
+  position: absolute; z-index: 4; left: 3%; right: 3%; bottom: 0;
+  height: 24%; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: 44% 43% 9%; gap: 2%;
+  color: #b8bacf; font-size: clamp(8px, .85cqw, 15px);
 }
-
+.instrument-binnacle { position: relative; padding: 2% 6% 0; border: 3px solid #302637; border-bottom: 0; border-radius: 22% 22% 0 0; background: #080c13; box-shadow: 0 -4px 0 #08080e, inset 0 3px 0 #47304d; }
+.dash-indicators, .dash-footer { display: flex; justify-content: space-between; gap: 5px; font-size: .8em; }
+.indicator-dim { color: #38404b; }
+.indicator-amber { color: #ffc477; }
+.indicator-cyan { color: #75e1e3; }
+.gauges { display: grid; grid-template-columns: 1fr 1fr .65fr; align-items: center; gap: 5%; height: 65%; }
+.analog-gauge { position: relative; height: 90%; overflow: hidden; border-radius: 50% 50% 8% 8%; border: 2px solid #3a4254; background: #0e1420; }
+.gauge-title { position: absolute; top: 14%; width: 100%; text-align: center; font-size: .65em; }
+.gauge-ticks { position: absolute; inset: 5%; border-radius: 50%; border-top: 3px dotted #75e1e3; border-left: 3px dotted #75e1e3; border-right: 3px dotted #ff739d; }
+.gauge-min, .gauge-max { position: absolute; bottom: 8%; font-size: .8em; }
+.gauge-min { left: 10%; } .gauge-max { right: 10%; }
+.gauge-needle { position: absolute; width: 37%; height: 2px; background: #ff729a; left: 15%; bottom: 21%; transform: rotate(24deg); transform-origin: right; }
+.speed-display { text-align: center; color: #b8ffed; }
+.speed-value { display: block; font-size: 3.5em; line-height: 1; letter-spacing: -.08em; }
+.speed-unit { display: flex; justify-content: center; gap: 15%; font-size: .85em; }
+.speed-unit b { color: #ffc477; }
+.fuel-display { color: #98a9b9; font-size: .75em; }
+.fuel-bars { color: #75e1e3; margin: 5px 0; letter-spacing: 1px; }
+.fuel-bars span { color: #293947; }
+.dash-footer { color: #8c829e; padding-top: 2%; border-top: 1px solid #29303c; }
+/* Raise the wheel into the windshield: its upper arc frames the instruments. */
+.steering-wheel { pointer-events: none; position: absolute; width: 86%; aspect-ratio: 1; left: 7%; top: -12%; border: clamp(9px, 1.8cqw, 30px) solid #211b2b; border-radius: 50%; box-shadow: 0 0 0 2px #795386, inset 0 0 0 2px #48334f; }
+/* Three sculpted spokes and a padded horn cover, inside the existing rim. */
+.wheel-stitching { position: absolute; inset: -5%; border: 1px dashed #796079; border-radius: 50%; opacity: .65; }
+.wheel-center-mark { position: absolute; top: -7%; left: 48%; width: 4%; height: 8%; background: #bca0be; border: 1px solid #46314e; border-radius: 2px; }
+.wheel-spoke { position: absolute; background: linear-gradient(180deg, #62586c, #302b3b 45%, #181822); box-shadow: inset 0 2px 0 #82718a; }
+.wheel-spoke-left, .wheel-spoke-right { top: 27%; width: 43%; height: 19%; display: flex; align-items: center; justify-content: center; gap: 9%; }
+.wheel-spoke-left { left: -2%; clip-path: polygon(0 0, 100% 40%, 100% 96%, 12% 62%); }
+.wheel-spoke-right { right: -2%; clip-path: polygon(0 40%, 100% 0, 88% 62%, 0 96%); }
+.wheel-spoke i { width: 15%; height: 21%; border-radius: 40%; background: #0d1018; border-bottom: 1px solid #75657d; transform: rotate(15deg); }
+.wheel-spoke-right i { transform: rotate(-15deg); }
+.wheel-spoke-bottom { top: 44%; left: 41%; width: 18%; height: 55%; clip-path: polygon(10% 0, 90% 0, 75% 100%, 25% 100%); background: linear-gradient(90deg, #49404f, #1b1a25 30%, #1b1a25 70%, #49404f); }
+.wheel-spoke-bottom::after { content: ''; position: absolute; top: 25%; bottom: 13%; left: 39%; width: 22%; border-radius: 40%; background: #0b0e15; border-right: 1px solid #77617e; }
+.wheel-hub { position: absolute; top: 25%; left: 31%; width: 38%; height: 30%; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 44% 44% 48% 48%; border: 2px solid #65516d; background: radial-gradient(ellipse at 45% 20%, #413548, #211d2b 65%); box-shadow: inset 0 2px 0 #806886, inset 0 -3px 0 #100e18, 0 3px 0 #0c0c13; }
+.wheel-hub::after { content: ''; position: absolute; inset: 8%; border: 1px solid #53415b; border-radius: inherit; }
+.wheel-emblem { display: grid; place-items: center; width: 43%; height: 48%; border: 1px solid #b49abe; border-radius: 50%; color: #e1cfe9; background: #151923; font-size: 1.15em; font-weight: bold; letter-spacing: .06em; box-shadow: 0 1px 0 #080b10; }
+.wheel-hub-label { margin-top: 4%; color: #b6a2c0; font-size: .5em; letter-spacing: .2em; }
+.wheel-bolt { position: absolute; top: 43%; width: 5%; aspect-ratio: 1; border-radius: 50%; background: #a08ea7; box-shadow: inset 0 0 0 1px #3c3344; }
+.wheel-bolt-left { left: 11%; } .wheel-bolt-right { right: 11%; }
+.center-console { align-self: end; min-width: 0; background: #211c28; border: 2px solid #44334c; border-bottom: 0; padding: 2%; box-shadow: inset 0 0 0 2px #0a0a10; }
+.console-top { display: flex; align-items: center; gap: 5%; height: 10px; margin-bottom: 8px; }
+.air-vent { display: block; flex: 1; height: 100%; min-height: 6px; background: repeating-linear-gradient(0deg, #06090e 0 2px, #3c3442 2px 3px); border: 1px solid #4b3c50; }
+.hazard-light { color: #e7858b; font-size: 1.2em; line-height: 1; }
+/* Keep the official player visible at >= 200 × 200 CSS pixels. */
 .broken-fm {
-  position: absolute;
-  z-index: 9;
-  right: 24px;
-  bottom: 22px;
-  width: min(330px, calc(100vw - 48px));
-  padding: 12px;
-  border: 2px solid #6b247f;
-  background: rgba(6,3,10,.92);
-  box-shadow: 6px 6px 0 rgba(67,21,91,.75);
+  position: relative; display: grid;
+  grid-template-columns: minmax(60px, 1fr) minmax(200px, 1.2fr);
+  gap: 8px; padding: 10px;
+  border: 2px solid #08080d; background: #15151e;
+  box-shadow: inset 0 1px 0 #514359, 0 1px 0 #514359;
+  font-size: 12px;
 }
-
-.fm-header { display: flex; align-items: baseline; gap: 2px; color: #f4b7ff; letter-spacing: .12em; }
-.fm-header strong { color: #ff2bd6; }
-.frequency { margin-left: auto; color: #53e7ff; font-size: 11px; }
-.track-screen { display: flex; gap: 10px; align-items: center; margin-top: 8px; padding: 10px; border: 1px solid #331140; background: #100617; }
-.track-number { color: #53e7ff; font-size: 20px; }
-.track-screen strong, .track-screen small { display: block; }
-.track-screen strong { color: #ff63df; font-size: 12px; }
-.track-screen small { margin-top: 3px; color: #a98ab8; font-size: 9px; }
-.equalizer { display: flex; align-items: end; gap: 3px; height: 24px; margin: 7px 0; }
-.equalizer i { flex: 1; min-width: 2px; height: calc(5px + (var(--n, 1) * 1px)); background: #8b5cf6; box-shadow: 0 0 5px rgba(255,43,214,.4); }
-.equalizer i:nth-child(3n) { height: 20px; background: #ff2bd6; }
-.equalizer i:nth-child(4n) { height: 11px; background: #53e7ff; }
-.equalizer i:nth-child(5n) { height: 17px; }
-.fm-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.fm-controls button { border: 1px solid #5b286b; background: #15081e; color: #e9bdf2; padding: 7px; cursor: pointer; }
+.broken-fm::before, .broken-fm::after { content: '+'; position: absolute; top: 0; color: #62556b; font-size: 9px; }
+.broken-fm::before { left: 1%; } .broken-fm::after { right: 1%; }
+.fm-header { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 2px; color: #e1c6e7; letter-spacing: .1em; font-size: 11px; }
+.fm-header strong { color: #ff74cf; }
+.frequency { margin-left: auto; color: #75e1e3; }
+.frequency small { font-size: .7em; }
+.fm-information { min-width: 0; display: flex; flex-direction: column; gap: 10px; padding: 10px 8px; border: 1px solid #32504e; background: #0b2023; box-shadow: inset 0 2px 0 #050b10; }
+.track-screen { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.track-number { color: #75e1e3; font-size: 20px; }
+.track-info { min-width: 0; }
+.track-screen strong, .track-screen small { display: block; overflow-wrap: anywhere; }
+.track-screen strong { color: #b8ffed; font-size: 12px; line-height: 1.4; }
+.track-screen small { margin-top: 5px; color: #9cc5c1; font-size: 10px; line-height: 1.4; }
+.equalizer { display: flex; align-items: end; gap: 2px; height: 8px; margin-top: auto; }
+.equalizer i { flex: 1; height: 2px; background: #4b7c78; }
+/* Decorative rhythm, enabled only by YouTube's PLAYING state. */
+.is-playing .equalizer i {
+  height: 8px;
+  transform-origin: bottom;
+  animation: fm-bounce 900ms steps(4, end) infinite;
+}
+.is-playing .equalizer i:nth-child(2n) { animation-duration: 720ms; animation-delay: -240ms; }
+.is-playing .equalizer i:nth-child(3n) { background: #75e1e3; animation-duration: 1100ms; animation-delay: -600ms; }
+.is-playing .equalizer i:nth-child(5n) { animation-duration: 820ms; animation-delay: -410ms; }
+@keyframes fm-bounce {
+  0%, 100% { transform: scaleY(.25); }
+  20% { transform: scaleY(.75); }
+  40% { transform: scaleY(.375); }
+  60% { transform: scaleY(1); }
+  80% { transform: scaleY(.5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-playing .equalizer i { animation: none; height: 4px; }
+  .is-playing .equalizer i:nth-child(3n) { height: 8px; }
+}
+.fm-status { margin: 0; color: #b8ffed; font-size: 10px; letter-spacing: .06em; }
+.fm-source { color: #9aa8b7; font-size: 9px; line-height: 1.6; }
+.youtube-screen { position: relative; min-width: 200px; min-height: 200px; align-self: stretch; background: #060a12; outline: 1px solid #546270; box-shadow: 0 0 0 3px #080b10, 0 0 8px #53e7ff15; }
+.youtube-mount { width: 100%; height: 100%; min-height: 200px; }
+.youtube-mount iframe { display: block; width: 100%; height: 100%; min-height: 200px; border: 0; image-rendering: auto; }
+.youtube-empty { position: absolute; inset: 0; display: grid; place-items: center; color: #75e1e3; }
+.fm-controls { display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; gap: 5px; }
+.fm-controls button { min-width: 0; min-height: 36px; padding: 4px; color: #e9c6e6; font-size: 13px; border: 1px solid #65516a; border-bottom: 3px solid #07090f; border-radius: 3px; background: #302636; cursor: pointer; }
+.fm-controls button:hover { background: #45324c; }
+.fm-controls button:active { border-bottom-width: 1px; }
 .fm-controls button:disabled { opacity: .35; cursor: not-allowed; }
-.fm-note { margin: 8px 0 0; color: #75627e; font-size: 8px; letter-spacing: .06em; }
+.volume-control { display: flex; align-items: center; gap: 6px; color: #b8afc4; font-size: 10px; }
+.volume-control input { min-width: 0; width: 100%; height: 24px; margin: 0; accent-color: #75e1e3; cursor: pointer; }
+.volume-control output { min-width: 3ch; text-align: right; }
+.fm-feedback { grid-column: 1 / -1; font-size: 11px; line-height: 1.5; color: #efc7a5; }
+.fm-feedback p { margin: 0 0 5px; }
+.fm-feedback a, .fm-feedback button { color: #b8ffed; font: inherit; }
+.fm-feedback button { margin-right: 12px; border: 1px solid #65516a; background: #302636; cursor: pointer; padding: 5px; }
+.passenger-trim { padding-top: 12%; color: #807087; text-align: center; font-size: .7em; letter-spacing: .1em; }
+.passenger-trim .air-vent { height: 20%; margin-bottom: 20%; }
+.glovebox { margin-top: 30%; height: 25%; border-top: 2px solid #3a2b43; border-bottom: 2px solid #06070c; }
+button:focus-visible, input:focus-visible { outline: 2px solid #b8ffed; outline-offset: 3px; }
 
 @media (max-width: 680px) {
-  .broken-fm { bottom: 14px; right: 14px; width: 240px; }
-  .route-hint { top: 12px; font-size: 8px; }
-  .hint { font-size: 9px; }
+  .hint { font-size: 12px; }
+}
+/* Give the cockpit its own space on small screens instead of shrinking the video. */
+@media (max-width: 1000px), (max-height: 650px) {
+  .app-shell { overflow-y: auto; }
+  .world-frame { top: 12px; width: 100%; transform: translateX(-50%); padding-bottom: 0; }
+  .car-dashboard { top: 76%; bottom: auto; left: 0; right: 0; height: auto; padding: 10px; grid-template-rows: auto; grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr); gap: 18px; background: #100e18; font-size: 12px; }
+  .instrument-binnacle { height: 140px; padding: 8px 20px; align-self: start; }
+  .center-console { position: relative; z-index: 1; padding: 8px; align-self: start; }
+  .console-top { height: 10px; }
+  .passenger-trim { display: none; }
+}
+@media (max-width: 680px) {
+  .car-dashboard { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 8px; }
+  .instrument-binnacle { height: 120px; }
+  .steering-wheel { width: 210px; left: calc(50% - 105px); top: -10px; border-width: 10px; }
+  .center-console { padding: 5px; }
+  .broken-fm { padding: 6px; gap: 6px; grid-template-columns: minmax(54px, 1fr) 200px; }
+  .fm-information { padding: 8px 4px; }
+  .track-screen strong { font-size: 10px; }
+  .track-screen small { font-size: 9px; }
+  .fm-controls { grid-column: 1 / -1; }
+  .fm-controls button { min-height: 44px; }
+  .volume-control { grid-column: 1 / -1; }
 }
